@@ -22,14 +22,13 @@ const Home = () => {
 
     const startChat = (e) => {
         e.preventDefault();
-        console.log('start chat');
         socket.emit('find-partner', username);
     }
 
     return (
     <div className='p-10 flex flex-col items-center justify-center'>
         <form className='flex flex-col items-center justify-center' onSubmit={startChat}>
-        <button className='bg-blue-600'>Start Chat</button>
+        <button className='bg-blue-600 p-2'>Start Chat</button>
         </form>
     </div>
     )
