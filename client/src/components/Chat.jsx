@@ -4,7 +4,7 @@ import { socket } from './Utils';
 import { ImageIcon, SendHorizonalIcon } from 'lucide-react';
 import { useLoading } from './Context';
 
-const FilePreview = ({ file, fileType, sendImage, cancelImage }) => {
+const SendingFilePreview = ({ file, fileType, sendImage, cancelImage }) => {
     return (
         <div className='fixed inset-0 bg-opacity-90 h-full w-full bg-gray-600 flex flex-col items-center justify-center gap-3 z-50'>
             {
@@ -23,6 +23,24 @@ const FilePreview = ({ file, fileType, sendImage, cancelImage }) => {
     )
 }
 
+const ChatFileView = ({msg, setChatFile}) => {
+    return (
+        <div className='fixed inset-0 bg-opacity-90 h-full w-full bg-gray-600 flex flex-col items-center justify-center gap-3 z-50'>
+            {
+                msg.type === 'image' &&
+                <img src={msg.content} alt="image" className='max-w-[60%] p-2 rounded-lg' />
+            }
+            {
+                msg.type === 'video' &&
+                <video src={msg.content} controls className='max-w-[60%] p-2 rounded-lg' />
+            }
+            <div className='flex gap-4'>
+                <button className='bg-red-600 p-2' onClick={() => setChatFile(null)}>Exit</button>
+            </div>
+        </div>
+    )
+}
+
 const Chat = () => {
     const { roomname } = useParams();
     const username = localStorage.getItem('username');
@@ -33,7 +51,8 @@ const Chat = () => {
     const [messages, setMessages] = useState([]);
     const bottomRef = useRef(null);
     const imageInputRef = useRef(null);
-    const [preview, setPreview] = useState(false);
+    const [sendingFilePreview, setSendingFilePreview] = useState(false);
+    const [chatFile, setChatFile] = useState(null);
     const { setLoading } = useLoading();
 
     useEffect(() => {
@@ -88,7 +107,7 @@ const Chat = () => {
         if (file) {
             convertToBase64(file, (base64Image) => {
                 setMessage({ content: base64Image, type: fileType })
-                setPreview(true);
+                setSendingFilePreview(true);
             })
         }
     }
@@ -97,12 +116,12 @@ const Chat = () => {
         setLoading(true);
         socket.emit('chat-message', {username, message, roomname});
         setMessage({content: '', type: ''});
-        setPreview(false);
+        setSendingFilePreview(false);
     }
 
     const cancelImage = () => {
         setMessage({content: '', type: ''});
-        setPreview(false);
+        setSendingFilePreview(false);
         if (imageInputRef.current) {
             imageInputRef.current.value = null; // Reset file input
         }
@@ -123,7 +142,10 @@ const Chat = () => {
                             )
                         } else if(message.message.type === 'image') {
                             return (
-                                <div key={index} className={`flex max-w-[60%] ${message.username === username ? 'self-end bg-blue-500' : 'self-start bg-gray-500'} p-2 rounded-lg`}>
+                                <div key={index} className={`flex max-w-[60%] ${message.username === username ? 'self-end bg-blue-500' : 'self-start bg-gray-500'} p-2 rounded-lg`} onClick={() => setChatFile({
+                                        content: message.message.content,
+                                        type: message.message.type
+                                    })}>
                                     <img src={message.message.content} alt="image"/>
                                 </div>
                             )
@@ -172,7 +194,10 @@ const Chat = () => {
                 </form>
             </div>
             {
-                preview && <FilePreview file={message.content} fileType={message.type} sendImage={sendImage} cancelImage={cancelImage} />
+                sendingFilePreview && <SendingFilePreview file={message.content} fileType={message.type} sendImage={sendImage} cancelImage={cancelImage} />
+            }
+            {
+                chatFile && <ChatFileView msg={chatFile} setChatFile={setChatFile} />
             }
         </div>
     )
