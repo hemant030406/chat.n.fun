@@ -2,11 +2,19 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router';
 import { socket } from './Utils';
 import { ImageIcon, SendHorizonalIcon } from 'lucide-react';
+import { useLoading } from './Context';
 
-const FilePreview = ({ file, sendImage, cancelImage }) => {
+const FilePreview = ({ file, fileType, sendImage, cancelImage }) => {
     return (
-        <div className='absolute h-full w-full bg-gray-600 flex flex-col items-center justify-center gap-3'>
-            <img src={file} alt="image" className='max-w-[60%] p-2 rounded-lg' />
+        <div className='fixed inset-0 bg-opacity-90 h-full w-full bg-gray-600 flex flex-col items-center justify-center gap-3 z-50'>
+            {
+                fileType === 'image' &&
+                <img src={file} alt="image" className='max-w-[60%] p-2 rounded-lg' />
+            }
+            {
+                fileType === 'video' &&
+                <video src={file} controls className='max-w-[60%] p-2 rounded-lg' />
+            }
             <div className='flex gap-4'>
                 <button className='bg-red-600 p-2' onClick={cancelImage}>Cancel</button>
                 <button className='bg-green-600 p-2' onClick={sendImage}>Send</button>
@@ -26,9 +34,13 @@ const Chat = () => {
     const bottomRef = useRef(null);
     const imageInputRef = useRef(null);
     const [preview, setPreview] = useState(false);
+    const { setLoading } = useLoading();
 
     useEffect(() => {
+        setLoading(false);
+
         socket.on('chat-message', (data) => {
+            setLoading(false);
             setMessages(messages => [...messages, data]);
         });
 
@@ -72,16 +84,17 @@ const Chat = () => {
 
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
+        const fileType = file.type.startsWith('image/') ? 'image' : 'video';
         if (file) {
             convertToBase64(file, (base64Image) => {
-                setMessage({ content: base64Image, type: 'image' })
-                socket.emit('chat-message', { username, message, roomname });
+                setMessage({ content: base64Image, type: fileType })
                 setPreview(true);
             })
         }
     }
 
     const sendImage = () => {
+        setLoading(true);
         socket.emit('chat-message', {username, message, roomname});
         setMessage({content: '', type: ''});
         setPreview(false);
@@ -112,6 +125,12 @@ const Chat = () => {
                             return (
                                 <div key={index} className={`flex max-w-[60%] ${message.username === username ? 'self-end bg-blue-500' : 'self-start bg-gray-500'} p-2 rounded-lg`}>
                                     <img src={message.message.content} alt="image"/>
+                                </div>
+                            )
+                        } else if(message.message.type === 'video'){
+                            return (
+                                <div key={index} className={`flex max-w-[60%] ${message.username === username ? 'self-end bg-blue-500' : 'self-start bg-gray-500'} p-2 rounded-lg`}>
+                                    <video src={message.message.content} controls/>
                                 </div>
                             )
                         }
@@ -153,7 +172,7 @@ const Chat = () => {
                 </form>
             </div>
             {
-                preview && <FilePreview file={message.content} sendImage={sendImage} cancelImage={cancelImage} />
+                preview && <FilePreview file={message.content} fileType={message.type} sendImage={sendImage} cancelImage={cancelImage} />
             }
         </div>
     )

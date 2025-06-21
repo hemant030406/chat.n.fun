@@ -2,15 +2,20 @@ import React from 'react'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router';
 import { socket } from './Utils';
+import { useLoading } from './Context.jsx';
 
 const Home = () => {
     const username = crypto.randomUUID().replace(/-/g, '');
     localStorage.setItem('username', username);
 
     const navigate = useNavigate();
+    const {setLoading} = useLoading();
 
     useEffect(() => {
+        setLoading(false);
+        
         socket.on('find-partner', (data) => {
+            setLoading(false);
             navigate(`/chat/${data.roomname}`);
         });
         socket.on('disconnect', () => {
@@ -23,6 +28,7 @@ const Home = () => {
     const startChat = (e) => {
         e.preventDefault();
         socket.emit('find-partner', username);
+        setLoading(true);
     }
 
     return (
