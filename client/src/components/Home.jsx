@@ -17,10 +17,12 @@ const Home = () => {
         
         socket.on('find-partner', (data) => {
             setLoading(false);
+            localStorage.setItem("chatStatus", "chatting");
             navigate(`/chat/${data.roomname}`);
         });
         socket.on('disconnect', () => {
             localStorage.removeItem('username');
+            localStorage.removeItem('chatStatus');
             navigate('/');
         });
     }, []);
@@ -28,8 +30,13 @@ const Home = () => {
 
     const startChat = (e) => {
         e.preventDefault();
+        if (localStorage.getItem("chatStatus") === "searching") {
+            alert("You're already searching for a partner in another tab.");
+            return;
+        }
         socket.emit('find-partner', username);
         setLoading(true);
+        localStorage.setItem("chatStatus", "searching");
     }
 
     return (

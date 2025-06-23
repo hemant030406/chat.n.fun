@@ -39,6 +39,10 @@ let queue = []
 
 io.on('connection', (socket) => {
 
+  socket.on('disconnect', () => {
+    queue = queue.filter(entry => entry.socket.id !== socket.id);
+  })
+
   socket.on('find-partner', (username) => {
     if (queue.length) {
       let { username: partner, socket: partnerSocket } = queue.shift();
