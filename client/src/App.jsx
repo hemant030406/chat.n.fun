@@ -3,6 +3,8 @@ import Home from './components/Home';
 import Chat from './components/Chat';
 import { LoadingContextProvider } from './components/Context';
 import Loading from './components/Loading';
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
@@ -14,6 +16,7 @@ function App() {
           <Route path="/chat/:roomname" element={<Chat />} />
         </Routes>
       </Router>
+      <ToastContainer />
     </LoadingContextProvider>
   );
 }

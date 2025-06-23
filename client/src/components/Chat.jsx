@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { socket } from './Utils';
 import { ImageIcon, SendHorizonalIcon } from 'lucide-react';
 import { useLoading } from './Context';
+import { toast } from 'react-toastify';
 
 const SendingFilePreview = ({ file, fileType, sendImage, cancelImage }) => {
     return (
@@ -76,6 +77,9 @@ const Chat = () => {
         })
 
         socket.on('partner-left', () => {
+            toast.info('Your Partner Left...', {
+                autoClose: 5000
+            });
             localStorage.removeItem('username');
             localStorage.removeItem('chatStatus');
             navigate('/');
