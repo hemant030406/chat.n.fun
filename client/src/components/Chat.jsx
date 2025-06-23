@@ -62,6 +62,8 @@ const Chat = () => {
 
         const handBeforeUnload = () => {
             socket.emit('manual-disconnect', {roomname});
+            localStorage.removeItem('username');
+            localStorage.removeItem('chatStatus');
             socket.disconnect();
         };
 
@@ -84,6 +86,12 @@ const Chat = () => {
             localStorage.removeItem('chatStatus');
             navigate('/');
         })
+
+        socket.on('disconnect', () => {
+            localStorage.removeItem('username');
+            localStorage.removeItem('chatStatus');
+            navigate('/');
+        });
 
         socket.emit("reconnect", roomname);
 

@@ -14,17 +14,29 @@ const Home = () => {
 
     useEffect(() => {
         setLoading(false);
+
+        const handleBeforeUnload = () => {
+            localStorage.removeItem('username');
+            localStorage.removeItem('chatStatus');
+        }
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
         
         socket.on('find-partner', (data) => {
             setLoading(false);
             localStorage.setItem("chatStatus", "chatting");
             navigate(`/chat/${data.roomname}`);
         });
+        
         socket.on('disconnect', () => {
             localStorage.removeItem('username');
             localStorage.removeItem('chatStatus');
             navigate('/');
         });
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        }
     }, []);
 
 
