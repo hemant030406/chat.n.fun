@@ -3,9 +3,10 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router';
 import { socket } from './Utils';
 import { useLoading } from './Context.jsx';
+import { v4 as uuidv4 } from 'uuid';
 
 const Home = () => {
-    const username = crypto.randomUUID().replace(/-/g, '');
+    const username = uuidv4().replace(/-/g, '');
     localStorage.setItem('username', username);
 
     const navigate = useNavigate();

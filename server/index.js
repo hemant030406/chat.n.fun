@@ -3,10 +3,17 @@ import { createServer } from 'http'
 import { Server } from 'socket.io';
 import crypto from "crypto"
 import { createTable, getMessages, insert } from './db.js';
+import cors from "cors"
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:4173']
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:4173', 'http://192.168.33.81:5173']
 
 const app = express();
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST'],
+  credentials: true,
+}));
 
 const server = createServer(app);
 
