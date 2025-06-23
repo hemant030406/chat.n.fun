@@ -5,7 +5,7 @@ import crypto from "crypto"
 import { createTable, getMessages, insert } from './db.js';
 import cors from "cors"
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:4173', 'http://192.168.33.81:5173', 'https://chat-n-fun-app.vercel.app/']
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:4173', 'http://192.168.33.81:5173', 'https://chat-n-fun-app.vercel.app']
 
 const app = express();
 
