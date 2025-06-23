@@ -61,10 +61,8 @@ const Chat = () => {
         setLoading(false);
 
         const handBeforeUnload = () => {
-            socket.emit('manual-disconnect', {roomname});
             localStorage.removeItem('username');
             localStorage.removeItem('chatStatus');
-            socket.disconnect();
         };
 
         window.addEventListener('beforeunload', handBeforeUnload);
@@ -80,7 +78,7 @@ const Chat = () => {
 
         socket.on('partner-left', () => {
             toast.info('Your Partner Left...', {
-                autoClose: 5000
+                autoClose: 3000
             });
             localStorage.removeItem('username');
             localStorage.removeItem('chatStatus');

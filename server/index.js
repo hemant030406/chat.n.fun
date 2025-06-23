@@ -13,7 +13,7 @@ app.use(cors({
   origin: allowedOrigins,
   methods: ['GET', 'POST'],
   credentials: true,
-}));
+})); // need to set both http and socket.io cors for proper communication
 
 const server = createServer(app);
 
@@ -36,32 +36,39 @@ app.get('/', (req, res) => {
 })
 
 let queue = []
+const socketRoomMap = new Map();
 
 io.on('connection', (socket) => {
-
-  socket.on('manual-disconnect', ({roomname}) => {
-    socket.to(roomname).emit('partner-left');
-    queue = queue.filter(entry => entry.socket.id !== socket.id);
-  })
-
+  
   socket.on('disconnect', () => {
-    const joinedRooms = Array.from(socket.rooms).filter(room => room != socket.id);
-
-    if(joinedRooms.length > 0) {
-      const room = joinedRooms[0];
-      console.log(room);
+    const room = socketRoomMap.get(socket.id);
+    
+    if (room) {
+      // Notify the other socket in the room
       socket.to(room).emit('partner-left');
+  
+      // Delete all socket IDs associated with this room
+      for (const [sid, r] of socketRoomMap.entries()) {
+        if (r === room) {
+          socketRoomMap.delete(sid);
+        }
+      }
     }
 
-    queue = queue.filter(entry => entry.socket.id !== socket.id);
+    queue = queue.filter(entry => entry.socket.id !== socket.id); // if the socket was waiting in the queue remove it as it disconnected
   })
 
   socket.on('find-partner', (username) => {
     if (queue.length) {
       let { username: partner, socket: partnerSocket } = queue.shift();
       let roomname = crypto.randomUUID().replace(/-/g, '');
+
       socket.join(roomname);
       partnerSocket.join(roomname);
+
+      socketRoomMap.set(socket.id, roomname);
+      socketRoomMap.set(partnerSocket.id, roomname);
+
       io.to(roomname).emit('find-partner', { username, partner, roomname });
     } else {
       queue.push({ username, socket });
