@@ -39,7 +39,20 @@ let queue = []
 
 io.on('connection', (socket) => {
 
+  socket.on('manual-disconnect', ({roomname}) => {
+    socket.to(roomname).emit('partner-left');
+    queue = queue.filter(entry => entry.socket.id !== socket.id);
+  })
+
   socket.on('disconnect', () => {
+    const joinedRooms = Array.from(socket.rooms).filter(room => room != socket.id);
+
+    if(joinedRooms.length > 0) {
+      const room = joinedRooms[0];
+      console.log(room);
+      socket.to(room).emit('partner-left');
+    }
+
     queue = queue.filter(entry => entry.socket.id !== socket.id);
   })
 

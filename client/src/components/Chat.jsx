@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { socket } from './Utils';
 import { ImageIcon, SendHorizonalIcon } from 'lucide-react';
 import { useLoading } from './Context';
@@ -54,9 +54,17 @@ const Chat = () => {
     const [sendingFilePreview, setSendingFilePreview] = useState(false);
     const [chatFile, setChatFile] = useState(null);
     const { setLoading } = useLoading();
+    const navigate = useNavigate();
 
     useEffect(() => {
         setLoading(false);
+
+        const handBeforeUnload = () => {
+            socket.emit('manual-disconnect', {roomname});
+            socket.disconnect();
+        };
+
+        window.addEventListener('beforeunload', handBeforeUnload);
 
         socket.on('chat-message', (data) => {
             setLoading(false);
@@ -67,6 +75,12 @@ const Chat = () => {
             setMessages(data);
         })
 
+        socket.on('partner-left', () => {
+            localStorage.removeItem('username');
+            localStorage.removeItem('chatStatus');
+            navigate('/');
+        })
+
         socket.emit("reconnect", roomname);
 
         socket.emit('get-messages', roomname);
@@ -74,6 +88,7 @@ const Chat = () => {
         return () => {
             socket.off('chat-message');
             socket.off('get-messages');
+            window.removeEventListener('beforeunload', handBeforeUnload);
         }
 
     }, []);
