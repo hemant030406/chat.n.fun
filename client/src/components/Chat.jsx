@@ -60,6 +60,10 @@ const Chat = () => {
     useEffect(() => {
         setLoading(false);
 
+        if(!username){
+            navigate('/');
+        }
+
         const handBeforeUnload = () => {
             localStorage.removeItem('username');
             localStorage.removeItem('chatStatus');
@@ -71,10 +75,6 @@ const Chat = () => {
             setLoading(false);
             setMessages(messages => [...messages, data]);
         });
-
-        socket.on('get-messages', (data) => {
-            setMessages(data);
-        })
 
         socket.on('partner-left', () => {
             toast.info('Your Partner Left...', {
@@ -91,13 +91,8 @@ const Chat = () => {
             navigate('/');
         });
 
-        socket.emit("reconnect", roomname);
-
-        socket.emit('get-messages', roomname);
-
         return () => {
             socket.off('chat-message');
-            socket.off('get-messages');
             window.removeEventListener('beforeunload', handBeforeUnload);
         }
 

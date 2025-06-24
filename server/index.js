@@ -2,7 +2,6 @@ import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io';
 import crypto from "crypto"
-import { createTable, getMessages, insert } from './db.js';
 import cors from "cors"
 
 const allowedOrigins = ['https://chat-n-fun-app.vercel.app']
@@ -76,23 +75,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('chat-message', (data) => {
-    insert(data.roomname, {username: data.username, message: data.message});
     io.to(data.roomname).emit('chat-message', data);
   });
-
-  socket.on('get-messages', (roomname) => {
-    io.to(roomname).emit('get-messages', getMessages(roomname));
-  });
-
-  socket.on('reconnect', roomname => {
-    socket.join(roomname);
-  })
 
 })
 
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  createTable();
   console.log('Server is running on port:' + PORT);
 })
